@@ -1,0 +1,52 @@
+
+    model {
+    
+    # Likelihood: 
+    # Level-1 of the model
+    for (i in 1:n){ 
+        isNotCensored[i] ~ dinterval(y[i] , censorLimitVec[i] )
+        y[i] ~ dnorm(mu[i], tau)               
+        mu[i] <- beta0 + beta1[site[i]] * yearX[i] + u1[site[i]] + u2[year[i]] + u3[site[i],year[i]]          
+    } 
+    
+    # Random site effect
+    for(j in 1:J){
+        u1[j] ~ dnorm(0,tau.site)
+    }
+    
+    # Random slope effect
+    for(s in 1:J){
+        beta1[s] ~ dnorm(beta1.mean, tau.slope)
+    }
+    
+    # Random year effect
+    for(y in 1:Y){
+      u2[y] ~ dnorm(0,tau.year)
+    }
+    
+    # loop over sites and years - random ephemeral temporal effect
+    for (j in 1:J){
+      for (y in 1:Y){
+        u3[j, y] ~ dnorm(0, tau.site.year) 
+      } 
+    } 
+    
+    # Priors
+    beta0 ~ dnorm(0, 0.0001)
+    beta1.mean ~ dnorm(0, 0.001)
+    sigma.e ~ dunif(0, 3)
+    sigma.slope ~ dunif(0,1)
+    sigma.site ~ dunif(0,3)
+    sigma.year ~ dunif(0,1)
+    sigma.site.year ~ dunif(0,1)
+    
+    # Derived quantities
+    tau <- pow(sigma.e,-2) 
+    tau.site <- pow(sigma.site,-2) 
+    tau.slope <- pow(sigma.slope, -2)
+    tau.year <- pow(sigma.year,-2) 
+    tau.site.year <- pow(sigma.site.year,-2)
+    
+    
+    } # end model
+    
